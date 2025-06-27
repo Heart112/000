@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>第五關：地獄智慧挑戰🔥</title>
+<style>
+  body {
+    margin:0; padding:0;
+    font-family:"Microsoft JhengHei", sans-serif;
+    background: url('images/background1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color:#222;
+    display:flex; justify-content:center; align-items:center;
+    height:100vh;
+  }
+  #game {
+    position: relative;
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    padding: 25px 30px;
+    box-shadow: 0 0 30px #b71c1c;
+    text-align:center;
+    overflow: hidden;
+  }
+  h1 {
+    color:#b71c1c;
+    margin-bottom: 15px;
+    font-size: 2.2rem;
+    user-select:none;
+  }
+  #boss {
+    background: rgba(0,0,0,0.85);
+    color: #f44336;
+    font-style: italic;
+    border-radius: 15px;
+    padding: 14px 20px;
+    margin-bottom: 18px;
+    font-size: 1.2rem;
+    min-height: 45px;
+    user-select:none;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+  }
+  #timer {
+    font-weight: bold;
+    color: #d32f2f;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    user-select:none;
+  }
+  #scoreBox {
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 1.15rem;
+    user-select:none;
+  }
+  #question {
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+    min-height: 60px;
+  }
+  button.option {
+    display: block;
+    background: linear-gradient(145deg, #ff6f91, #ff91a4);
+    border: none;
+    border-radius: 20px;
+    box-shadow: 3px 3px 8px #d6497a, -3px -3px 8px #ffb6c1;
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 9px auto;
+    padding: 12px 18px;
+    cursor: pointer;
+    max-width: 100%;
+    transition: all 0.3s ease;
+    user-select:none;
+  }
+  button.option:hover {
+    background: linear-gradient(145deg, #ff91a4, #ff6f91);
+    box-shadow: 0 0 15px #ff456e;
+  }
+  #inputArea {
+    margin: 15px 0;
+  }
+  #inputArea input {
+    font-size: 1.1rem;
+    padding: 10px;
+    width: 80%;
+    max-width: 320px;
+    border-radius: 15px;
+    border: 2px solid #b71c1c;
+    outline: none;
+  }
+  #inputArea input:focus {
+    border-color: #ff456e;
+    box-shadow: 0 0 8px #ff456e;
+  }
+  #inputArea button {
+    padding: 10px 16px;
+    font-size: 1.1rem;
+    border-radius: 15px;
+    border:none;
+    background: #b71c1c;
+    color:#fff;
+    margin-left: 12px;
+    cursor: pointer;
+    user-select:none;
+  }
+  #message {
+    margin-top: 22px;
+    min-height: 28px;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  /* 可愛風格按鈕 */
+  button.option {
+    user-select:none;
+  }
+  button.option:hover {
+    user-select:none;
+  }
+
+  /* 倒數10秒背景閃爍 */
+  @keyframes redGlow {
+    0%, 100% { box-shadow: 0 0 15px #ff3b3b; }
+    50% { box-shadow: 0 0 35px #ff0000; }
+  }
+  #game.countdown {
+    animation: redGlow 1s infinite alternate;
+  }
+
+  /* 錯誤模糊晃動 */
+  @keyframes shakeBlur {
+    0%, 100% { filter: blur(0); transform: translate(0,0); }
+    25% { filter: blur(2px); transform: translate(-5px,5px); }
+    50% { filter: blur(4px); transform: translate(5px,-5px); }
+    75% { filter: blur(2px); transform: translate(-3px,3px); }
+  }
+  .shakeBlur {
+    animation: shakeBlur 0.5s 3;
+  }
+
+  /* BOSS火焰爆裂文字 */
+  @keyframes fireBurst {
+    0% { color: #f44336; text-shadow: 0 0 10px #ff5722; }
+    50% { color: #ff1744; text-shadow: 0 0 25px #ff8a80, 0 0 30px #ff5252; }
+    100% { color: #f44336; text-shadow: 0 0 10px #ff5722; }
+  }
+  .fireBurst {
+    animation: fireBurst 1s ease-in-out 3;
+  }
+
+  /* 彩帶爆裂動畫 (答對特效) */
+  @keyframes confettiDrop {
+    0% { opacity: 0; transform: translateY(-20px) rotate(0deg); }
+    50% { opacity: 1; transform: translateY(10px) rotate(360deg); }
+    100% { opacity: 0; transform: translateY(100px) rotate(720deg); }
+  }
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4081;
+    opacity: 0;
+    animation: confettiDrop 1s forwards;
+    border-radius: 50%;
+    pointer-events: none;
+    user-select:none;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <h1>🔥 地獄智慧挑戰（第五關）🔥</h1>
+  <div id="boss">👿 BOSS：準備好被燒腦了嗎？</div>
+  <div id="timer">剩餘時間：45秒</div>
+  <div id="scoreBox">分數：0 | 錯誤次數：0/3</div>
+  <div id="question"></div>
+  <div id="options"></div>
+  <div id="inputArea" style="display:none;">
+    <input type="text" id="textAnswer" placeholder="請輸入答案..." autocomplete="off" />
+    <button onclick="submitTextAnswer()">提交</button>
+  </div>
+  <div id="message"></div>
+</div>
+
+<script>
+// ==== BOSS 嘲諷語句（地獄魔王風）====
+const bossLines = [
+  "哼哼哼，這題不可能有人答得對！",
+  "你真的以為這題簡單？醒醒吧！",
+  "答錯一次我都替你難過！",
+  "哈哈哈，還敢挑戰？",
+  "別自欺欺人了，你撐不過去！",
+  "我已經開始嘲笑你的腦袋了！",
+  "你腦容量都快燒壞了吧？",
+  "這才開始，燒腦才剛開始！",
+  "輸了可別怪我沒提醒你。",
+  "答案都寫在火焰裡了，快找找！"
+];
+
+// ==== 題庫，題型：choice / bool / text
+const questionBank = [
+  { type: "choice", question: "哪個行為能有效預防感冒？", options: ["勤洗手", "熬夜玩手機", "少喝水", "吃零食"], answer: "勤洗手" },
+  { type: "choice", question: "以下哪個不是健康飲食習慣？", options: ["多吃蔬果", "暴飲暴食", "規律運動", "保持良好睡眠"], answer: "暴飲暴食" },
+  { type: "bool", question: "每天喝足夠的水有助健康？", answer: true },
+  { type: "text", question: "填空：維持良好____可以減少壓力。", answer: "睡眠" },
+  { type: "choice", question: "哪種運動最適合初學者？", options: ["高強度間歇", "快走", "舉重", "極限跑步"], answer: "快走" },
+  { type: "bool", question: "過量喝含糖飲料不利健康。", answer: true },
+  { type: "choice", question: "哪種食品有助於腸胃蠕動？", options: ["炸雞", "蔬果", "糖果", "速食"], answer: "蔬果" },
+  { type: "text", question: "填空：____是維生素C的主要來源。", answer: "水果" },
+  { type: "choice", question: "減少焦慮可透過什麼？", options: ["冥想", "看恐怖片", "熬夜", "喝咖啡因"], answer: "冥想" },
+  { type: "bool", question: "保持良好社交有助心理健康？", answer: true },
+  { type: "choice", question: "以下哪個行為可能導致肥胖？", options: ["多運動", "暴飲暴食", "均衡飲食", "早睡早起"], answer: "暴飲暴食" },
+  { type: "text", question: "填空：每天至少____分鐘的運動對健康有益。", answer: "30" },
+  { type: "choice", question: "哪種飲料較不利健康？", options: ["綠茶", "可樂", "白開水", "蜂蜜水"], answer: "可樂" },
+  { type: "bool", question: "適度休息能提高工作效率。", answer: true },
+  { type: "choice", question: "以下哪種食品含高脂肪？", options: ["堅果", "薯條", "燕麥", "蘋果"], answer: "薯條" },
+  { type: "text", question: "填空：多吃____有助補充膳食纖維。", answer: "蔬菜" },
+  { type: "choice", question: "哪個行為有助於良好睡眠？", options: ["睡前滑手機", "泡熱水澡", "喝咖啡", "晚吃大餐"], answer: "泡熱水澡" },
+  { type: "bool", question: "每天曬太陽有助於維生素D合成？", answer: true },
+  { type: "choice", question: "以下哪個不屬於壓力管理方法？", options: ["冥想", "運動", "熬夜", "深呼吸"], answer: "熬夜" },
+  { type: "text", question: "填空：____可幫助肌肉放鬆與恢復。", answer: "伸展" },
+];
+
+// ==== 遊戲狀態 ====
+let currentIndex = 0;
+let score = 0;
+let wrongCount = 0;
+let timeLeft = 45;
+let timer = null;
+let freeze = false;
+
+// 抽出本次遊戲題目，隨機 6 題
+let gameQuestions = [];
+function pickQuestions() {
+  const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
+  gameQuestions = shuffled.slice(0, 6);
+}
+pickQuestions();
+
+// === 語音朗讀 BOSS ===
+function bossSpeak(text) {
+  if (!('speechSynthesis' in window)) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'zh-TW';
+  utter.pitch = 0.5 + Math.random() * 0.3;
+  utter.rate = 0.9 + Math.random() * 0.4;
+  utter.volume = 0.7;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
+}
+
+// === BOSS 嘲諷隨機挑選 ===
+function getBossLine() {
+  if (wrongCount >= 2) {
+    return "你快燒壞腦袋了吧？別再丟臉了！";
+  }
+  if (score >= 20) {
+    return "還不錯嘛，但別高興太早！";
+  }
+  return bossLines[Math.floor(Math.random() * bossLines.length)];
+}
+
+// === 更新 BOSS 對話與語音 ===
+function updateBoss() {
+  const line = getBossLine();
+  const bossDiv = document.getElementById("boss");
+  bossDiv.textContent = "👿 BOSS：" + line;
+  bossSpeak(line);
+}
+
+// === 題目選項擾亂，隨機排列，並微調選項文字 ===
+function shuffleOptions(opts) {
+  const modified = opts.map(opt => {
+    if (Math.random() < 0.3) {
+      return opt.replace(/健康/g, "衛生").replace(/良好/g, "正常");
+    }
+    return opt;
+  });
+  for (let i = modified.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [modified[i], modified[j]] = [modified[j], modified[i]];
+  }
+  return modified;
+}
+
+// === 顯示題目 ===
+function showQuestion() {
+  if (currentIndex >= gameQuestions.length) currentIndex = 0;
+  freeze = false;
+  clearInterval(timer);
+  timeLeft = 45;
+  timer = setInterval(updateTimer, 1000);
+
+  updateBoss();
+
+  const q = gameQuestions[currentIndex];
+  document.getElementById("message").textContent = "";
+  document.getElementById("scoreBox").textContent = `分數：${score} | 錯誤次數：${wrongCount}/3`;
+  document.getElementById("question").textContent = q.question;
+
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  const inputArea = document.getElementById("inputArea");
+  inputArea.style.display = "none";
+  document.getElementById("textAnswer").value = "";
+
+  if (q.type === "choice") {
+    const opts = shuffleOptions(q.options);
+    opts.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.textContent = opt;
+      btn.onclick = () => checkAnswer(opt);
+      optionsDiv.appendChild(btn);
+    });
+  } else if (q.type === "bool") {
+    ["是", "否"].forEach(val => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.textContent = val;
+      btn.onclick = () => checkAnswer(val === "是");
+      optionsDiv.appendChild(btn);
+    });
+  } else if (q.type === "text") {
+    inputArea.style.display = "block";
+  }
+
+  // 移除閃爍背景class
+  document.getElementById("game").classList.remove("countdown");
+}
+
+// === 計時器更新 ===
+function updateTimer() {
+  timeLeft--;
+  const gameDiv = document.getElementById("game");
+  if (timeLeft <= 10) {
+    gameDiv.classList.add("countdown");
+  } else {
+    gameDiv.classList.remove("countdown");
+  }
+  document.getElementById("timer").textContent = `剩餘時間：${timeLeft}秒`;
+  if (timeLeft <= 0) {
+    clearInterval(timer);
+    handleAnswer(false, true);
+  }
+}
+
+// === 送出填空題答案 ===
+function submitTextAnswer() {
+  if (freeze) return;
+  const q = gameQuestions[currentIndex];
+  const input = document.getElementById("textAnswer").value.trim();
+  handleAnswer(input === q.answer);
+}
+
+// === 檢查選項答案 ===
+function checkAnswer(selected) {
+  if (freeze) return;
+  const q = gameQuestions[currentIndex];
+  let correct = false;
+  if (q.type === "choice" || q.type === "text") {
+    correct = selected === q.answer;
+  } else if (q.type === "bool") {
+    correct = selected === q.answer;
+  }
+  handleAnswer(correct);
+}
+
+// === 答題結果處理 ===
+function handleAnswer(isCorrect, timeout = false) {
+  freeze = true;
+  clearInterval(timer);
+
+  const gameDiv = document.getElementById("game");
+  const bossDiv = document.getElementById("boss");
+
+  if (isCorrect) {
+    score += 5;
+    showMessage("✔️ 正確！+5分", "green", false, true);
+  } else {
+    score -= 16;
+    wrongCount++;
+    showMessage(timeout ? "⌛ 超時 -16分" : "❌ 錯誤 -16分", "red", true, false);
+    playLaughSound();
+  }
+  document.getElementById("scoreBox").textContent = `分數：${score} | 錯誤次數：${wrongCount}/3`;
+  updateBoss();
+
+  if (wrongCount >= 3) {
+    setTimeout(() => {
+      alert("你輸了！即將重回第一關，重新挑戰吧！");
+      window.location.href = "index1.html"; // 失敗強制回第一關
+    }, 1500);
+    return;
+  }
+
+  setTimeout(() => {
+    currentIndex++;
+    showQuestion();
+  }, isCorrect ? 1500 : 3500);
+}
+
+// === 顯示訊息 ===
+function showMessage(text, color, isError = false, isSuccess = false) {
+  const msg = document.getElementById("message");
+  msg.textContent = text;
+  msg.style.color = color;
+
+  const gameDiv = document.getElementById("game");
+  const bossDiv = document.getElementById("boss");
+
+  if (isError) {
+    gameDiv.classList.add("shakeBlur");
+    bossDiv.classList.add("fireBurst");
+    setTimeout(() => {
+      gameDiv.classList.remove("shakeBlur");
+      bossDiv.classList.remove("fireBurst");
+    }, 1500);
+  }
+
+  if (isSuccess) {
+    launchConfetti();
+  }
+}
+
+// === 播放嘲笑音效 ===
+function playLaughSound() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/human_voices/laugh_female.ogg");
+  audio.volume = 0.3;
+  audio.play();
+}
+
+// === 彩帶爆裂特效 ===
+function launchConfetti() {
+  const gameDiv = document.getElementById("game");
+  for (let i = 0; i < 20; i++) {
+    const confetti = document.createElement("div");
+    confetti.className = "confetti";
+    confetti.style.left = Math.random() * gameDiv.clientWidth + "px";
+    confetti.style.top = "0px";
+    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 65%)`;
+    gameDiv.appendChild(confetti);
+    confetti.addEventListener("animationend", () => confetti.remove());
+  }
+}
+
+// ==== 開始遊戲 ====
+showQuestion();
+</script>
+</body>
+</html>

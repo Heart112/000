@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>健康與福祉 第三關｜拖曳配對遊戲</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", cursive;
+      background-image: url('bg1.png');
+      background-size: cover;
+      background-position: center;
+      margin: 0;
+      padding: 20px;
+      cursor: url('cursor.png'), auto;
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff3366;
+      margin-bottom: 10px;
+    }
+
+    #timer {
+      font-size: 20px;
+      color: #ff3366;
+      margin-bottom: 10px;
+    }
+
+    #progress {
+      width: 80%;
+      height: 12px;
+      background-color: #eee;
+      margin: 0 auto 20px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #bar {
+      height: 100%;
+      background-color: #ff99cc;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    .game-area {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      flex-wrap: wrap;
+    }
+
+    .column {
+      width: 250px;
+      min-height: 400px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 0 10px #ff99cc;
+      overflow-y: auto;
+    }
+
+    .droppable {
+      border: 2px dashed #ff99cc;
+      min-height: 60px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+      padding: 5px;
+    }
+
+    .draggable {
+      background-color: #ffe0f0;
+      padding: 8px;
+      border-radius: 10px;
+      cursor: grab;
+      margin: 8px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 16px;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 22px;
+      color: #339966;
+    }
+
+    #clap {
+      display: none;
+      width: 100px;
+      margin-top: 20px;
+    }
+
+    .click-image {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+<body>
+  <audio autoplay loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-littleidea.mp3" type="audio/mpeg">
+  </audio>
+
+  <h1>健康與福祉 第三關 💪 拖曳配對遊戲</h1>
+  <div id="timer">⏰ 剩餘時間：84 秒</div>
+  <div id="progress"><div id="bar"></div></div>
+  <div class="game-area">
+    <div class="column" id="draggables">
+      <div class="draggable" draggable="true" data-match="1">多喝水</div>
+      <div class="draggable" draggable="true" data-match="2">規律運動</div>
+      <div class="draggable" draggable="true" data-match="3">充分睡眠</div>
+      <div class="draggable" draggable="true" data-match="4">良好人際關係</div>
+      <div class="draggable" draggable="true" data-match="5">均衡飲食</div>
+      <div class="draggable" draggable="true" data-match="6">刷牙</div>
+      <div class="draggable" draggable="true" data-match="7">定期檢查</div>
+      <div class="draggable" draggable="true" data-match="8">保持心情愉快</div>
+      <div class="draggable" draggable="true" data-match="9">曬太陽</div>
+      <div class="draggable" draggable="true" data-match="10">遠離菸酒</div>
+    </div>
+    <div class="column" id="droppables">
+      <div class="droppable" data-match="1">幫助新陳代謝</div>
+      <div class="droppable" data-match="2">提升心肺功能</div>
+      <div class="droppable" data-match="3">增強免疫力</div>
+      <div class="droppable" data-match="4">減輕壓力</div>
+      <div class="droppable" data-match="5">提供均衡營養</div>
+      <div class="droppable" data-match="6">預防口腔疾病</div>
+      <div class="droppable" data-match="7">及早發現異常</div>
+      <div class="droppable" data-match="8">穩定情緒</div>
+      <div class="droppable" data-match="9">幫助合成維生素D</div>
+      <div class="droppable" data-match="10">降低罹病風險</div>
+    </div>
+  </div>
+
+  <div id="result"></div>
+  <img id="clap" src="https://i.imgur.com/OdL0XPt.gif" alt="clap animation" />
+  <audio id="correct-sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+  <audio id="wrong-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+  <script>
+    let timeLeft = 84;
+    let matched = 0;
+    let errors = 0;
+    const totalPairs = 10;
+    const maxErrors = 3;
+    const timerEl = document.getElementById("timer");
+    const resultEl = document.getElementById("result");
+    const clap = document.getElementById("clap");
+    const bar = document.getElementById("bar");
+    const correctSound = document.getElementById("correct-sound");
+    const wrongSound = document.getElementById("wrong-sound");
+
+    document.querySelectorAll(".draggable").forEach(el => {
+      el.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", el.dataset.match);
+        e.dataTransfer.setDragImage(el, 0, 0);
+      });
+    });
+
+    document.querySelectorAll(".droppable").forEach(target => {
+      target.addEventListener("dragover", e => {
+        e.preventDefault();
+      });
+      target.addEventListener("drop", e => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData("text/plain");
+        if (draggedId === target.dataset.match) {
+          target.textContent += " ✅";
+          target.style.backgroundColor = "#d4ffd4";
+          matched++;
+          correctSound.play();
+          clap.style.display = "inline";
+          setTimeout(() => clap.style.display = "none", 1000);
+          const draggedItem = document.querySelector(`.draggable[data-match='${draggedId}']`);
+          draggedItem.remove();
+          if (matched === totalPairs) {
+            endGame(true);
+          }
+        } else {
+          wrongSound.play();
+          target.style.backgroundColor = "#ffd4d4";
+          setTimeout(() => target.style.backgroundColor = "" , 500);
+          errors++;
+          if (errors >= maxErrors) {
+            endGame(false);
+          }
+        }
+      });
+    });
+
+    function endGame(success) {
+      clearInterval(timer);
+      gameBoard.style.pointerEvents = "none";
+      resultEl.innerHTML = success ? "🎉 全部配對完成！太棒了！即將前往下一關..." : `❌ 配對錯誤次數過多或時間到。你完成了 ${matched} / ${totalPairs} 組。`;
+      if (success) {
+        setTimeout(() => window.location.href = "index4.html", 3000);
+      }
+    }
+
+    const timer = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        timerEl.textContent = `⏰ 剩餘時間：${timeLeft} 秒`;
+        bar.style.width = `${(timeLeft / 84) * 100}%`;
+      } else {
+        endGame(false);
+      }
+    }, 1000);
+
+    document.addEventListener("click", function(e) {
+      const img = document.createElement("img");
+      img.src = "click.png";
+      img.className = "click-image";
+      img.style.left = e.pageX + "px";
+      img.style.top = e.pageY + "px";
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), 300);
+    });
+  </script>
+</body>
+</html>

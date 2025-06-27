@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>健康與福祉 第四關｜射擊遊戲（困難模式）</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: url('bg4.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: "Comic Sans MS", cursive;
+      cursor: url('gun.png'), auto;
+    }
+    canvas {
+      display: block;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      color: #ff3366;
+      font-size: 24px;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 10px;
+      border-radius: 10px;
+    }
+    #timer {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      color: #339966;
+      font-size: 24px;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 10px;
+      border-radius: 10px;
+    }
+    .click-effect {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <audio autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2023/03/30/audio_e47cbb7ce5.mp3" type="audio/mpeg">
+  </audio>
+  <div id="score">分數：0</div>
+  <div id="timer">剩餘時間：100</div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const appleImg = new Image(); appleImg.src = "apple.png";
+    const virusImg = new Image(); virusImg.src = "virus.png";
+    const shotImg = new Image(); shotImg.src = "shot.png";
+    const hitImg = new Image(); hitImg.src = "hit.png";
+    const questionImg = new Image(); questionImg.src = "question.png";
+
+    let targets = [];
+    let score = 0;
+    let timeLeft = 100;
+    let errors = 0;
+    const maxErrors = 5;
+    const targetScore = 30;
+
+    let animationFrameId;
+    let spawnInterval = setInterval(spawnTarget, 800);
+    let timer;
+
+    function spawnTarget() {
+      const rand = Math.random();
+      let obj = {
+        x: Math.random() * (canvas.width - 80),
+        y: -80,
+        size: 60
+      };
+      if (rand < 0.4) {
+        obj.speed = 2 + Math.random();
+        obj.good = true;
+        obj.image = appleImg;
+        obj.type = "good";
+      } else if (rand < 0.8) {
+        obj.speed = 3 + Math.random() * 2;
+        obj.good = false;
+        obj.image = virusImg;
+        obj.type = "bad";
+      } else {
+        obj.speed = 2 + Math.random() * 3;
+        obj.good = null;
+        obj.image = questionImg;
+        obj.type = "unknown";
+      }
+      targets.push(obj);
+    }
+
+    function drawTargets() {
+      targets.forEach(t => {
+        ctx.drawImage(t.image, t.x, t.y, t.size, t.size);
+        t.y += t.speed;
+      });
+      targets = targets.filter(t => t.y < canvas.height + 60);
+    }
+
+    function showClickEffect(x, y) {
+      const img = document.createElement("img");
+      img.src = "shot.png";
+      img.className = "click-effect";
+      img.style.left = `${x}px`;
+      img.style.top = `${y}px`;
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), 300);
+    }
+
+    function endGame(failed = false) {
+      clearInterval(timer);
+      clearInterval(spawnInterval);
+      cancelAnimationFrame(animationFrameId);
+      if (failed) {
+        alert(`❌ 遊戲結束！你已失敗。`);
+      } else if (score >= targetScore) {
+        alert(`🎯 恭喜通過！你的得分是：${score}`);
+        window.location.href = "index5.html";
+      } else {
+        alert(`😢 未達 ${targetScore} 分，挑戰失敗（目前：${score}）`);
+      }
+    }
+
+    canvas.addEventListener("click", e => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      showClickEffect(mouseX, mouseY);
+
+      for (let i = targets.length - 1; i >= 0; i--) {
+        const t = targets[i];
+        if (
+          mouseX >= t.x && mouseX <= t.x + t.size &&
+          mouseY >= t.y && mouseY <= t.y + t.size
+        ) {
+          if (t.type === "good") {
+            score++;
+          } else if (t.type === "bad") {
+            score--;
+            errors++;
+          } else if (t.type === "unknown") {
+            const change = Math.random() < 0.5 ? -5 : 15;
+            score += change;
+            alert(`你點擊了 ?：${change > 0 ? "加" : "扣"}${Math.abs(change)} 分！`);
+          }
+          targets.splice(i, 1);
+          break;
+        }
+      }
+
+      document.getElementById("score").textContent = `分數：${score}`;
+
+      if (errors >= maxErrors) {
+        endGame(true);
+      }
+    });
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawTargets();
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    animationFrameId = requestAnimationFrame(gameLoop);
+
+    timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById("timer").textContent = `剩餘時間：${timeLeft}`;
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
