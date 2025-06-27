@@ -6,7 +6,7 @@
   <style>
     body {
       font-family: "Comic Sans MS", cursive;
-      background-image: url('bg1.png');
+      background-image: url('bg3.png');
       background-size: cover;
       background-position: center;
       margin: 0;
@@ -153,6 +153,7 @@
     const bar = document.getElementById("bar");
     const correctSound = document.getElementById("correct-sound");
     const wrongSound = document.getElementById("wrong-sound");
+    const gameBoard = document.querySelector(".game-area");
 
     document.querySelectorAll(".draggable").forEach(el => {
       el.addEventListener("dragstart", e => {
@@ -195,9 +196,13 @@
     function endGame(success) {
       clearInterval(timer);
       gameBoard.style.pointerEvents = "none";
-      resultEl.innerHTML = success ? "🎉 全部配對完成！太棒了！即將前往下一關..." : `❌ 配對錯誤次數過多或時間到。你完成了 ${matched} / ${totalPairs} 組。`;
       if (success) {
-        setTimeout(() => window.location.href = "index4.html", 3000);
+        resultEl.innerHTML = "🎉 配對完成！準備進入第四關...";
+        setTimeout(() => {
+          window.location.href = "index4.html";
+        }, 3000);
+      } else {
+        resultEl.innerHTML = `❌ 你完成了 ${matched}/${totalPairs}，挑戰失敗。`;
       }
     }
 
